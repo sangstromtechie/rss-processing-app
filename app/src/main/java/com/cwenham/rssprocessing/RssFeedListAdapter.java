@@ -43,7 +43,7 @@ public class RssFeedListAdapter
         final RssFeedModel rssFeedModel = mRssFeedModels.get(position);
         ((TextView)holder.rssFeedView.findViewById(R.id.titleText)).setText(rssFeedModel.title);
         ((TextView)holder.rssFeedView.findViewById(R.id.descriptionText)).setText(rssFeedModel.description);
-        ((TextView)holder.rssFeedView.findViewById(R.id.linkText)).setText(rssFeedModel.link);
+        ((TextView)holder.rssFeedView.findViewById(R.id.dateText)).setText(rssFeedModel.pubDate);
     }
 
     @Override

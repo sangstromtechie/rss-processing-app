@@ -32,11 +32,13 @@ public class MainActivity extends AppCompatActivity {
     private SwipeRefreshLayout mSwipeLayout;
     private TextView mFeedTitleTextView;
     private TextView mFeedLinkTextView;
+    private TextView mFeedPubDateTextView;
     private TextView mFeedDescriptionTextView;
 
     private List<RssFeedModel> mFeedModelList;
     private String mFeedTitle;
     private String mFeedLink;
+    private String mFeedPubDate;
     private String mFeedDescription;
     private String urlLink;
 
@@ -50,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         mZamNetworkButton = findViewById(R.id.btnZam);
         mSwipeLayout = findViewById(R.id.swipeRefreshLayout);
         mFeedTitleTextView = findViewById(R.id.feedTitle);
+        mFeedPubDateTextView = findViewById(R.id.dateText);
         mFeedDescriptionTextView = findViewById(R.id.feedDescription);
         mFeedLinkTextView = findViewById(R.id.feedLink);
 
@@ -82,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
     public List<RssFeedModel> parseFeed(InputStream inputStream) throws XmlPullParserException, IOException {
         String title = null;
         String link = null;
+        String pubDate = null;
         String description = null;
         boolean isItem = false;
         List<RssFeedModel> items = new ArrayList<>();
@@ -124,18 +128,21 @@ public class MainActivity extends AppCompatActivity {
                     title = result;
                 } else if (name.equalsIgnoreCase("link")) {
                     link = result;
+                } else if (name.equalsIgnoreCase("pubdate")) {
+                    pubDate = result;
                 } else if (name.equalsIgnoreCase("description")) {
                     description = result;
                 }
 
                 if (title != null && link != null && description != null) {
                     if(isItem) {
-                        RssFeedModel item = new RssFeedModel(title, link, description);
+                        RssFeedModel item = new RssFeedModel(title, link, pubDate, description);
                         items.add(item);
                     }
                     else {
                         mFeedTitle = title;
                         mFeedLink = link;
+                        mFeedPubDate = pubDate;
                         mFeedDescription = description;
                     }
 
@@ -159,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
             mSwipeLayout.setRefreshing(true);
             mFeedTitle = null;
             mFeedLink = null;
+            mFeedPubDate = null;
             mFeedDescription = null;
             mFeedTitleTextView.setText("Feed Title: " + mFeedTitle);
             mFeedDescriptionTextView.setText("Feed Description: " + mFeedDescription);
