@@ -1,5 +1,8 @@
 package com.cwenham.rssprocessing;
 
+import android.app.ProgressDialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -10,15 +13,20 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Xml;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,19 +35,11 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "Christian";
 
-    private RecyclerView mRecyclerView;
     private Button mWowheadButton, mZamNetworkButton;
-    private SwipeRefreshLayout mSwipeLayout;
-    private TextView mFeedTitleTextView;
-    private TextView mFeedLinkTextView;
-    private TextView mFeedPubDateTextView;
-    private TextView mFeedDescriptionTextView;
 
-    private List<RssFeedModel> mFeedModelList;
-    private String mFeedTitle;
-    private String mFeedLink;
-    private String mFeedPubDate;
-    private String mFeedDescription;
+    private ListView lvRss;
+    private ArrayList<String> titles;
+    private ArrayList<String> links;
     private String urlLink;
 
     @Override
@@ -47,22 +47,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mRecyclerView = findViewById(R.id.recyclerView);
+        lvRss = findViewById(R.id.listView);
         mWowheadButton = findViewById(R.id.btnWow);
         mZamNetworkButton = findViewById(R.id.btnZam);
-        mSwipeLayout = findViewById(R.id.swipeRefreshLayout);
-        mFeedTitleTextView = findViewById(R.id.feedTitle);
-        mFeedPubDateTextView = findViewById(R.id.dateText);
-        mFeedDescriptionTextView = findViewById(R.id.feedDescription);
-        mFeedLinkTextView = findViewById(R.id.feedLink);
 
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        titles = new ArrayList<String>();
+        links = new ArrayList<String>();
 
         mWowheadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 urlLink = "www.wowhead.com/news&rss";
-                new FetchFeedTask().execute((Void) null);
+                new ProcessInBackground().execute();
             }
         });
 
@@ -70,145 +66,94 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 urlLink = "http://www.zam.com/feeds/rss/";
-                new FetchFeedTask().execute((Void) null);
+                new ProcessInBackground().execute();
             }
         });
 
-        mSwipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        lvRss.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onRefresh() {
-                new FetchFeedTask().execute((Void) null);
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                Uri uri = Uri.parse(links.get(position));
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                startActivity(intent);
+
             }
         });
     }
 
-    public List<RssFeedModel> parseFeed(InputStream inputStream) throws XmlPullParserException, IOException {
-        String title = null;
-        String link = null;
-        String pubDate = null;
-        String description = null;
-        boolean isItem = false;
-        List<RssFeedModel> items = new ArrayList<>();
-
+    public InputStream getInputStream(URL url) {
         try {
-            XmlPullParser xmlPullParser = Xml.newPullParser();
-            xmlPullParser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            xmlPullParser.setInput(inputStream, null);
-
-            xmlPullParser.nextTag();
-            while (xmlPullParser.next() != XmlPullParser.END_DOCUMENT) {
-                int eventType = xmlPullParser.getEventType();
-
-                String name = xmlPullParser.getName();
-                if(name == null)
-                    continue;
-
-                if(eventType == XmlPullParser.END_TAG) {
-                    if(name.equalsIgnoreCase("item")) {
-                        isItem = false;
-                    }
-                    continue;
-                }
-
-                if (eventType == XmlPullParser.START_TAG) {
-                    if(name.equalsIgnoreCase("item")) {
-                        isItem = true;
-                        continue;
-                    }
-                }
-
-                Log.d("MainActivity", "Parsing name ==> " + name);
-                String result = "";
-                if (xmlPullParser.next() == XmlPullParser.TEXT) {
-                    result = xmlPullParser.getText();
-                    xmlPullParser.nextTag();
-                }
-
-                if (name.equalsIgnoreCase("title")) {
-                    title = result;
-                } else if (name.equalsIgnoreCase("link")) {
-                    link = result;
-                } else if (name.equalsIgnoreCase("pubdate")) {
-                    pubDate = result;
-                } else if (name.equalsIgnoreCase("description")) {
-                    description = result;
-                }
-
-                if (title != null && link != null && description != null) {
-                    if(isItem) {
-                        RssFeedModel item = new RssFeedModel(title, link, pubDate, description);
-                        items.add(item);
-                    }
-                    else {
-                        mFeedTitle = title;
-                        mFeedLink = link;
-                        mFeedPubDate = pubDate;
-                        mFeedDescription = description;
-                    }
-
-                    title = null;
-                    link = null;
-                    description = null;
-                    isItem = false;
-                }
-            }
-
-            return items;
-        } finally {
-            inputStream.close();
+            //openConnection() returns instance that represents a connection to the remote object referred to by the URL
+            //getInputStream() returns a stream that reads from the open connection
+            return url.openConnection().getInputStream();
+        } catch (IOException e) {
+            return null;
         }
     }
 
-    private class FetchFeedTask extends AsyncTask<Void, Void, Boolean> {
+    public class ProcessInBackground extends AsyncTask<Integer, Void, Exception> {
+        ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+
+        Exception exception = null;
 
         @Override
         protected void onPreExecute() {
-            mSwipeLayout.setRefreshing(true);
-            mFeedTitle = null;
-            mFeedLink = null;
-            mFeedPubDate = null;
-            mFeedDescription = null;
-            mFeedTitleTextView.setText("Feed Title: " + mFeedTitle);
-            mFeedDescriptionTextView.setText("Feed Description: " + mFeedDescription);
-            mFeedLinkTextView.setText("Feed Link: " + mFeedLink);
+            super.onPreExecute();
+
+            progressDialog.setMessage("Busy loading rss feed...please wait...");
+            progressDialog.show();
         }
 
         @Override
-        protected Boolean doInBackground(Void... voids) {
-            if (TextUtils.isEmpty(urlLink))
-                return false;
+        protected Exception doInBackground(Integer... params) {
 
             try {
-                if(!urlLink.startsWith("http://") && !urlLink.startsWith("https://"))
-                    urlLink = "http://" + urlLink;
-
                 URL url = new URL(urlLink);
-                InputStream inputStream = url.openConnection().getInputStream();
-                mFeedModelList = parseFeed(inputStream);
-                return true;
-            } catch (IOException e) {
-                Log.e(TAG, "Error", e);
-            } catch (XmlPullParserException e) {
-                Log.e(TAG, "Error", e);
+                XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+                factory.setNamespaceAware(false);
+                XmlPullParser xpp = factory.newPullParser();
+                xpp.setInput(getInputStream(url), "UTF_8");
+                boolean insideItem = false;
+                int eventType = xpp.getEventType();
+
+                while (eventType != XmlPullParser.END_DOCUMENT) {
+                    if (eventType == XmlPullParser.START_TAG) {
+                        if (xpp.getName().equalsIgnoreCase("item")) {
+                            insideItem = true;
+                        } else if (xpp.getName().equalsIgnoreCase("title")) {
+                            if (insideItem) {
+                                titles.add(xpp.nextText());
+                            }
+                        } else if (xpp.getName().equalsIgnoreCase("link")) {
+                            if (insideItem) {
+                                links.add(xpp.nextText());
+                            }
+                        }
+                    } else if (eventType == XmlPullParser.END_TAG && xpp.getName().equalsIgnoreCase("item")) {
+                        insideItem = false;
+                    }
+                    eventType = xpp.next();
+                }
+            } catch (MalformedURLException e) {
+                exception = e;
+            } catch (XmlPullParserException e)
+            {
+                exception = e;
+            } catch (IOException e)
+            {
+                exception = e;
             }
-            return false;
+            return exception;
         }
 
         @Override
-        protected void onPostExecute(Boolean success) {
-            mSwipeLayout.setRefreshing(false);
+        protected void onPostExecute(Exception s) {
+            super.onPostExecute(s);
 
-            if (success) {
-                mFeedTitleTextView.setText("Feed Title: " + mFeedTitle);
-                mFeedDescriptionTextView.setText("Feed Description: " + mFeedDescription);
-                mFeedLinkTextView.setText("Feed Link: " + mFeedLink);
-                // Fill RecyclerView
-                mRecyclerView.setAdapter(new RssFeedListAdapter(mFeedModelList));
-            } else {
-                Toast.makeText(MainActivity.this,
-                        "Enter a valid Rss feed url",
-                        Toast.LENGTH_LONG).show();
-            }
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, titles);
+            lvRss.setAdapter(adapter);
+            progressDialog.dismiss();
         }
     }
 }
