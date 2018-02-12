@@ -2,24 +2,16 @@ package com.cwenham.rssprocessing;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.util.Log;
-import android.util.Xml;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -29,53 +21,41 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
+
     private static final String TAG = "Christian";
 
-    private Button mWowheadButton, mZamNetworkButton;
-
-    private ListView lvRss;
+    private SharedPreferences sharedPreferences;
+    private ListView listView;
+    private ArrayAdapter<String> adapter;
     private ArrayList<String> titles;
     private ArrayList<String> links;
-    private String urlLink;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_main);
-
-        lvRss = findViewById(R.id.listView);
-        mWowheadButton = findViewById(R.id.btnWow);
-        mZamNetworkButton = findViewById(R.id.btnZam);
+        listView = findViewById(R.id.listView);
+        ProcessInBackground task = new ProcessInBackground();
+        task.execute();
 
         titles = new ArrayList<String>();
         links = new ArrayList<String>();
 
-        mWowheadButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                urlLink = "www.wowhead.com/news&rss";
-                new ProcessInBackground().execute();
-            }
-        });
-
-        mZamNetworkButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                urlLink = "http://www.zam.com/feeds/rss/";
-                new ProcessInBackground().execute();
-            }
-        });
-
-        lvRss.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+                ArrayAdapter<String> adapter = (ArrayAdapter<String>) parent.getAdapter();
+
                 Uri uri = Uri.parse(links.get(position));
-                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                String urlString = uri.toString();
+                Intent intent = new Intent(view.getContext(), RSSWebviewActivity.class);
+                intent.putExtra("Link", "http://www.zam.com" + urlString);
                 startActivity(intent);
 
             }
@@ -83,9 +63,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public InputStream getInputStream(URL url) {
+        Log.d(TAG, "getInputStream");
         try {
-            //openConnection() returns instance that represents a connection to the remote object referred to by the URL
-            //getInputStream() returns a stream that reads from the open connection
             return url.openConnection().getInputStream();
         } catch (IOException e) {
             return null;
@@ -94,22 +73,21 @@ public class MainActivity extends AppCompatActivity {
 
     public class ProcessInBackground extends AsyncTask<Integer, Void, Exception> {
         ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
-
         Exception exception = null;
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-
-            progressDialog.setMessage("Busy loading rss feed...please wait...");
+            Log.d(TAG, "onPreExecute");
+            progressDialog.setMessage("Loading feeds...");
             progressDialog.show();
         }
 
         @Override
         protected Exception doInBackground(Integer... params) {
-
+            Log.d(TAG, "doInBackground");
             try {
-                URL url = new URL(urlLink);
+                URL url = new URL("http://www.zam.com/feeds/rss/");
                 XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
                 factory.setNamespaceAware(false);
                 XmlPullParser xpp = factory.newPullParser();
@@ -137,22 +115,21 @@ public class MainActivity extends AppCompatActivity {
                 }
             } catch (MalformedURLException e) {
                 exception = e;
-            } catch (XmlPullParserException e)
-            {
+            } catch (XmlPullParserException e) {
                 exception = e;
-            } catch (IOException e)
-            {
+            } catch (IOException e) {
                 exception = e;
             }
+
             return exception;
         }
 
         @Override
         protected void onPostExecute(Exception s) {
             super.onPostExecute(s);
-
+            Log.d(TAG, "onPostExecute");
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, titles);
-            lvRss.setAdapter(adapter);
+            listView.setAdapter(adapter);
             progressDialog.dismiss();
         }
     }
