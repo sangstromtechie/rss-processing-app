@@ -7,6 +7,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 public class RSSWebviewActivity extends AppCompatActivity {
@@ -18,7 +19,11 @@ public class RSSWebviewActivity extends AppCompatActivity {
 
         Bundle extras = getIntent().getExtras();
         String url = extras.getString("Link");
+        String title = extras.getString("Title");
+        setTitle(title);
         WebView myWebView = findViewById(R.id.webView);
+        WebSettings webSettings = myWebView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
         myWebView.loadUrl(url);
     }
 

@@ -8,6 +8,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -56,10 +59,34 @@ public class MainActivity extends AppCompatActivity {
                 String urlString = uri.toString();
                 Intent intent = new Intent(view.getContext(), RSSWebviewActivity.class);
                 intent.putExtra("Link", "http://www.zam.com" + urlString);
+                intent.putExtra("Title", titles.get(position));
                 startActivity(intent);
 
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.refresh:
+                ProcessInBackground task = new ProcessInBackground();
+                task.execute();
+                return true;
+            case R.id.settings:
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     public InputStream getInputStream(URL url) {
