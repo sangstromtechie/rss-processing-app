@@ -46,6 +46,10 @@ public class MainActivity extends AppCompatActivity {
         ProcessInBackground task = new ProcessInBackground();
         task.execute();
 
+        sharedPreferences = getSharedPreferences("general", 0);
+        String checkIfSet = sharedPreferences.getString("Link", null);
+        String ifSetTitle = sharedPreferences.getString("Title", null);
+
         titles = new ArrayList<String>();
         links = new ArrayList<String>();
 
@@ -55,15 +59,53 @@ public class MainActivity extends AppCompatActivity {
 
                 ArrayAdapter<String> adapter = (ArrayAdapter<String>) parent.getAdapter();
 
+
+                Intent intent = new Intent(view.getContext(), RSSWebviewActivity.class);
                 Uri uri = Uri.parse(links.get(position));
                 String urlString = uri.toString();
-                Intent intent = new Intent(view.getContext(), RSSWebviewActivity.class);
                 intent.putExtra("Link", "http://www.zam.com" + urlString);
                 intent.putExtra("Title", titles.get(position));
                 startActivity(intent);
 
             }
         });
+
+        if(checkIfSet != null) {
+            Intent intent = new Intent(this, RSSWebviewActivity.class);
+            intent.putExtra("Link", checkIfSet);
+            intent.putExtra("Title", ifSetTitle);
+            startActivity(intent);
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "MainActivity - onStart");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "MainActivity - onResume");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "MainActivity - onPause");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "MainActivity - onStop");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "MainActivity - onDestroy");
     }
 
     @Override
@@ -90,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public InputStream getInputStream(URL url) {
-        Log.d(TAG, "getInputStream");
+        Log.d(TAG, "MainActivity - getInputStream");
         try {
             return url.openConnection().getInputStream();
         } catch (IOException e) {
@@ -105,15 +147,16 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            Log.d(TAG, "onPreExecute");
+            Log.d(TAG, "MainActivity - onPreExecute");
             progressDialog.setMessage("Loading feeds...");
             progressDialog.show();
         }
 
         @Override
         protected Exception doInBackground(Integer... params) {
-            Log.d(TAG, "doInBackground");
+            Log.d(TAG, "MainActivity - doInBackground");
             try {
+
                 URL url = new URL("http://www.zam.com/feeds/rss/");
                 XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
                 factory.setNamespaceAware(false);
@@ -154,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Exception s) {
             super.onPostExecute(s);
-            Log.d(TAG, "onPostExecute");
+            Log.d(TAG, "MainActivity - onPostExecute");
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, titles);
             listView.setAdapter(adapter);
             progressDialog.dismiss();
