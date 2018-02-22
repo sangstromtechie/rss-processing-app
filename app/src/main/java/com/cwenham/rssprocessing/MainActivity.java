@@ -1,11 +1,15 @@
 package com.cwenham.rssprocessing;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.graphics.TypefaceCompatUtil;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -14,6 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -21,6 +26,7 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -32,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "Christian";
 
     private SharedPreferences sharedPreferences;
+    private LinearLayout linearLayout;
     private ListView listView;
     private ArrayAdapter<String> adapter;
     private ArrayList<String> titles;
@@ -90,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             sharedPreferences = getSharedPreferences("general", 0);
+            linearLayout = findViewById(R.id.activity_main);
 
             String fontSizePref = sharedPreferences.getString("Size", "18");
 
@@ -99,6 +107,10 @@ public class MainActivity extends AppCompatActivity {
             } else if (fontSizePref == "22") {
                 themeID = R.style.FontSizeLarge;
             }
+
+            int backgroundColor = sharedPreferences.getInt("Color", Color.WHITE);
+
+            linearLayout.setBackgroundColor(backgroundColor);
 
             setTheme(themeID);
         } catch (Exception e) {

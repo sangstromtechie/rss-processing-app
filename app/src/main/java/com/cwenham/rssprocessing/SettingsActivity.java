@@ -1,6 +1,7 @@
 package com.cwenham.rssprocessing;
 
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -27,7 +28,7 @@ public class SettingsActivity extends AppCompatActivity {
         Spinner feedSpinner = findViewById(R.id.feed);
         Spinner fontSpinner = findViewById(R.id.font);
         Spinner colorSpinner = findViewById(R.id.fontColor);
-        Spinner styleSpinner = findViewById(R.id.style);
+        Spinner rememberSpinner = findViewById(R.id.style);
 
         ArrayAdapter<CharSequence> feedAdapter = ArrayAdapter.createFromResource(this,
                 R.array.rrs_feed, android.R.layout.simple_spinner_item);
@@ -93,18 +94,29 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         ArrayAdapter<CharSequence> colorAdapter = ArrayAdapter.createFromResource(this,
-                R.array.font_color, android.R.layout.simple_spinner_item);
+                R.array.back_color, android.R.layout.simple_spinner_item);
         colorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         colorSpinner.setAdapter(colorAdapter);
+        colorSpinner.setSelection(sharedPreferences.getInt("ColorSelect", 0));
         colorSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                SharedPreferences.Editor editor = sharedPreferences.edit();
                 switch (position) {
                     case 0:
+                        editor.putInt("Color", Color.WHITE);
+                        editor.putInt("ColorSelect", 0);
+                        editor.apply();
                         break;
                     case 1:
+                        editor.putInt("Color", Color.CYAN);
+                        editor.putInt("ColorSelect", 1);
+                        editor.apply();
                         break;
                     case 2:
+                        editor.putInt("Color", Color.RED);
+                        editor.putInt("ColorSelect", 2);
+                        editor.apply();
                         break;
                 }
             }
@@ -115,19 +127,27 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        ArrayAdapter<CharSequence> styleAdapter = ArrayAdapter.createFromResource(this,
-                R.array.font_style, android.R.layout.simple_spinner_item);
-        styleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        styleSpinner.setAdapter(styleAdapter);
-        styleSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+        ArrayAdapter<CharSequence> rememberAdapter = ArrayAdapter.createFromResource(this,
+                R.array.remember, android.R.layout.simple_spinner_item);
+        rememberAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        rememberSpinner.setAdapter(rememberAdapter);
+        rememberSpinner.setSelection(sharedPreferences.getInt("RememberSelect", 0));
+        rememberSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                SharedPreferences.Editor editor = sharedPreferences.edit();
                 switch (position) {
                     case 0:
+                        editor.putString("Remember", "No");
+                        editor.putInt("RememberSelect", 0);
+                        editor.putString("Link", null);
+                        editor.putString("Title", null);
+                        editor.apply();
                         break;
                     case 1:
-                        break;
-                    case 2:
+                        editor.putString("Remember", "Yes");
+                        editor.putInt("RememberSelect", 1);
+                        editor.apply();
                         break;
                 }
             }

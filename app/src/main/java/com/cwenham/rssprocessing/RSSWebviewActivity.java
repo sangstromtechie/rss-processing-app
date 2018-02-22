@@ -18,6 +18,7 @@ import android.webkit.WebView;
 public class RSSWebviewActivity extends AppCompatActivity {
 
     private static final String TAG = "Christian";
+    SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
 
     @Override
@@ -26,7 +27,8 @@ public class RSSWebviewActivity extends AppCompatActivity {
         setContentView(R.layout.activity_rsswebview);
         Log.d(TAG, "RSSWebViewActivity - onCreate");
 
-        editor = getSharedPreferences("general", 0).edit();
+        sharedPreferences = getSharedPreferences("general", 0);
+        editor = sharedPreferences.edit();
 
         Bundle extras = getIntent().getExtras();
         String url = extras.getString("Link");
@@ -75,9 +77,11 @@ public class RSSWebviewActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
 
-        editor.putString("Link", null);
-        editor.putString("Title", null);
-        editor.apply();
+        if(sharedPreferences.getString("Remember", "No") != "Yes") {
+            editor.putString("Link", null);
+            editor.putString("Title", null);
+            editor.apply();
+        }
     }
 
 }

@@ -38,7 +38,7 @@
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Font Color" />
+        android:text="Background Color" />
 
     <Spinner
         android:id="@+id/fontColor"
@@ -50,7 +50,7 @@
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="App Color Theme" />
+        android:text="Remember which article I was last reading?" />
 
     <Spinner
         android:id="@+id/style"
