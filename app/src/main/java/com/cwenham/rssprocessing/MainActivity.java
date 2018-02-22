@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "onCreate");
+        Log.d(TAG, "MainActivity - onCreate");
         setContentView(R.layout.activity_main);
         listView = findViewById(R.id.listView);
         ProcessInBackground task = new ProcessInBackground();
@@ -62,8 +62,13 @@ public class MainActivity extends AppCompatActivity {
 
                 Intent intent = new Intent(view.getContext(), RSSWebviewActivity.class);
                 Uri uri = Uri.parse(links.get(position));
-                String urlString = uri.toString();
-                intent.putExtra("Link", "http://www.zam.com" + urlString);
+                String urlString = "";
+                if(sharedPreferences.getInt("Feed", 0) == 1) {
+                    urlString = uri.toString();
+                } else if(sharedPreferences.getInt("Feed", 0) == 0) {
+                    urlString = "http://www.zam.com" + uri.toString();
+                }
+                intent.putExtra("Link", urlString);
                 intent.putExtra("Title", titles.get(position));
                 startActivity(intent);
 
@@ -82,12 +87,32 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         Log.d(TAG, "MainActivity - onStart");
+
+        try {
+            sharedPreferences = getSharedPreferences("general", 0);
+
+            String fontSizePref = sharedPreferences.getString("Size", "18");
+
+            int themeID = R.style.FontSizeMedium;
+            if(fontSizePref == "14") {
+                themeID = R.style.FontSizeSmall;
+            } else if (fontSizePref == "22") {
+                themeID = R.style.FontSizeLarge;
+            }
+
+            setTheme(themeID);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "MainActivity - onResume");
+
+        ProcessInBackground task = new ProcessInBackground();
+        task.execute();
     }
 
     @Override
@@ -157,7 +182,8 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "MainActivity - doInBackground");
             try {
 
-                URL url = new URL("http://www.zam.com/feeds/rss/");
+                sharedPreferences = getSharedPreferences("general", 0);
+                URL url = new URL(sharedPreferences.getString("URL","http://www.zam.com/feeds/rss/"));
                 XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
                 factory.setNamespaceAware(false);
                 XmlPullParser xpp = factory.newPullParser();
@@ -165,6 +191,8 @@ public class MainActivity extends AppCompatActivity {
                 boolean insideItem = false;
                 int eventType = xpp.getEventType();
 
+                titles.clear();
+                links.clear();
                 while (eventType != XmlPullParser.END_DOCUMENT) {
                     if (eventType == XmlPullParser.START_TAG) {
                         if (xpp.getName().equalsIgnoreCase("item")) {

@@ -46,14 +46,14 @@
         android:layout_height="wrap_content" />
 
     <TextView
-        android:id="@+id/tvTheme"
+        android:id="@+id/tvStyle"
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="App Color Theme" />
 
     <Spinner
-        android:id="@+id/theme"
+        android:id="@+id/style"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 

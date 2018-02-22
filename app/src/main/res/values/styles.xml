@@ -12,6 +12,18 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
+    
+    <style name="FontSizeSmall">
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="FontSizeMedium">
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="FontSizeLarge">
+        <item name="android:textSize">22sp</item>
+    </style>
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
