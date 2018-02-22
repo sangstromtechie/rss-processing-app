@@ -143,6 +143,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "MainActivity - onDestroy");
+        sharedPreferences = getSharedPreferences("general", 0);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        if(sharedPreferences.getString("Remember", "No") == "No") {
+            editor.putString("Link", null);
+            editor.putString("Title", null);
+            editor.apply();
+        }
     }
 
     @Override

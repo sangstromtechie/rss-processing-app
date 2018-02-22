@@ -140,8 +140,6 @@ public class SettingsActivity extends AppCompatActivity {
                     case 0:
                         editor.putString("Remember", "No");
                         editor.putInt("RememberSelect", 0);
-                        editor.putString("Link", null);
-                        editor.putString("Title", null);
                         editor.apply();
                         break;
                     case 1:
